@@ -21,5 +21,16 @@ namespace PalletScanner.Data
         public float BaselineAngle => baselineAngle;
         public float ModuleSizePixels => moduleSizePixels;
         public PointF[]? BarcodeCorners => barcodeCorners;
+
+        public BarcodeRead(BarcodeRead copy) : 
+            this(copy.Source, 
+                copy.ReadTimeOffset, 
+                copy.BarcodeContent, 
+                copy.SymbologyType, 
+                copy.CenterPoint,
+                copy.BaselineAngle,
+                copy.ModuleSizePixels,
+                copy.BarcodeCorners)
+        {}
     }
 }

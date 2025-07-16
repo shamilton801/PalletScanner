@@ -12,4 +12,8 @@
     <PackageReference Include="System.Linq.Async" Version="6.0.3" />
   </ItemGroup>
 
+  <Target Name="CopyTysonCsv" AfterTargets="AfterBuild">
+	  <Copy SourceFiles="Customers\Tyson\tyson_ex_data.csv" DestinationFolder="$(OutDir)" />
+  </Target>
+
 </Project>
