@@ -1,6 +1,7 @@
 ﻿using PalletScanner.Customers.Interface;
 using PalletScanner.Customers.Tyson;
 using PalletScanner.Data;
+using PalletScanner.Hardware.Arduino;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Utils;
 using System.Net;
@@ -8,6 +9,7 @@ using System.Net;
 const bool isJordan = false;
 
 var cameras = isJordan ? CreateJordansCameras() : CreateScannerCameras();
+
 RunToCancel(tok => Run<Tyson>(cameras, tok));
 
 static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = default)
@@ -18,6 +20,7 @@ static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = def
     var validation = customer.CreateValidationSession();
     validation.StatusChanged += Validation_StatusChanged;
     Validation_StatusChanged(validation, validation.Status);
+    ArduinoIf.StartScanning();
     await foreach (var barcode in cameras.ReadAllBarcodes().WithCancellation(token))
     {
         Console.WriteLine("Barcode scanned: " + barcode.BarcodeContent);
@@ -48,6 +51,7 @@ static void RunToCancel(Func<CancellationToken, Task> task)
         Console.ReadKey();
         cts.Cancel();
     }), task(cts.Token)).WaitForCancel();
+    ArduinoIf.StopScanning();
     Console.WriteLine("Operation cancelled");
 }
 
