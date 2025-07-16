@@ -29,7 +29,7 @@ namespace PalletScanner.Customers.Tyson
         public string SerialNumber => Raw.BarcodeContent.Substring(39, 7);
     }
 
-    public class TysonValidator : IValidator
+    public class TysonValidator : AbstractValidator
     {
         private class ValidationData
         {
@@ -37,20 +37,21 @@ namespace PalletScanner.Customers.Tyson
             public List<string> SerialNums = [];
         }
 
-        public IList<Status> Status => [];
+        public override IEnumerable<Status> Status => _status;
+        private readonly List<Status> _status = [];
         
         private readonly Dictionary<string, ValidationData> _currentScanData = [];
 
-        public void AddBarcodeRead(BarcodeRead barcodeRead)
+        public override void AddBarcodeRead(BarcodeRead barcodeRead)
         {
             TysonBarcode b = new(barcodeRead);
-            Status s = new();
-            s.AssociatedBarcodeRead = barcodeRead;
+            //Status s = new();
+            //s.AssociatedBarcodeRead = barcodeRead;
             
             if (!TysonCsvData.ExpectedCounts.ContainsKey(b.ItemNumber))
             {
-                s.Type = StatusType.Error;
-                s.Message = $"{b.ItemNumber} was not found in the Tyson Validation CSV";
+                //s.Type = StatusType.Error;
+                //s.Message = $"{b.ItemNumber} was not found in the Tyson Validation CSV";
             } else
             {
                 if (!_currentScanData.ContainsKey(b.ItemNumber)) _currentScanData[b.ItemNumber] = new();
@@ -60,11 +61,11 @@ namespace PalletScanner.Customers.Tyson
 
                 bool rightAmount = _currentScanData[b.ItemNumber].Count == TysonCsvData.ExpectedCounts[b.ItemNumber];
 
-                s.Type = rightAmount ? StatusType.Error : StatusType.Info;
-                s.Message = $"{_currentScanData[b.ItemNumber]}/{TysonCsvData.ExpectedCounts[b.ItemNumber]} {TysonCsvData.ItemDescriptions[b.ItemNumber]} ({b.ItemNumber})";
+                //s.Type = rightAmount ? StatusType.Error : StatusType.Info;
+                //s.Message = $"{_currentScanData[b.ItemNumber]}/{TysonCsvData.ExpectedCounts[b.ItemNumber]} {TysonCsvData.ItemDescriptions[b.ItemNumber]} ({b.ItemNumber})";
             }
 
-            Status.Add(s);
+            //_status.Add(s);
         }
     }
 

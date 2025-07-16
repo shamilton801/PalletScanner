@@ -5,10 +5,10 @@
         Info, Warning, Error
     }
 
-    public struct Status
+    public class Status(StatusType type, string message = "")
     {
-        public StatusType Type { get; set; }
-        public string Message { get; set; }
-        public BarcodeRead? AssociatedBarcodeRead { get; set; }
+        public StatusType Type => type;
+        public string Message => message;
+        public virtual IEnumerable<BarcodeRead> AssociatedBarcodeReads => [];
     }
 }

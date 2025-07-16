@@ -1,5 +1,6 @@
 ﻿using PalletScanner.Customers.Interface;
 using PalletScanner.Customers.Tyson;
+using PalletScanner.Data;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Utils;
 using System.Net;
@@ -15,12 +16,29 @@ static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = def
     Customer customer = new();
     Console.WriteLine("Using customer: " + customer.Name);
     var validation = customer.CreateValidationSession();
+    validation.StatusChanged += Validation_StatusChanged;
+    Validation_StatusChanged(validation, validation.Status);
     await foreach (var barcode in cameras.ReadAllBarcodes().WithCancellation(token))
     {
         Console.WriteLine("Barcode scanned: " + barcode.BarcodeContent);
         validation.AddBarcodeRead(barcode);
     }
 }
+
+static void Validation_StatusChanged(IValidator sender, IEnumerable<Status> newStatus)
+{
+    foreach (var status in newStatus)
+    {
+        Console.WriteLine(status.Type switch
+        {
+            StatusType.Info     => "   Info: ",
+            StatusType.Warning  => "WARNING: ",
+            StatusType.Error    => "  ERROR: ",
+            _                   => "Unknown: "
+        } + status.Message);
+    }
+}
+
 static void RunToCancel(Func<CancellationToken, Task> task)
 {
     CancellationTokenSource cts = new();
