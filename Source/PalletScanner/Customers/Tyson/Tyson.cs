@@ -31,41 +31,114 @@ namespace PalletScanner.Customers.Tyson
 
     public class TysonValidator : AbstractValidator
     {
-        private class ValidationData
+        private class ValidationPerPallet(string itemNumber)
         {
-            public int Count = 0;
-            public List<string> SerialNums = [];
+            public class ValidationPerItem
+            {
+                public readonly List<BarcodeRead> Reads = [];
+
+                public bool AddBarcodeRead(TysonBarcode barcodeRead)
+                {
+                    Reads.Add(barcodeRead.Raw);
+                    return false;
+                }
+
+                public IEnumerable<Status> GetStatus()
+                {
+                    yield break;
+                }
+            }
+
+            public readonly Dictionary<string, ValidationPerItem> ItemsBySerialNumber = [];
+
+            public bool AddBarcodeRead(TysonBarcode barcodeRead)
+            {
+                bool hasCorrectNumber = ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes;
+                var sn = barcodeRead.SerialNumber;
+                if (!ItemsBySerialNumber.TryGetValue(sn, out var itemData))
+                {
+                    itemData = new();
+                    ItemsBySerialNumber[sn] = itemData;
+                }
+                bool statusChanged = hasCorrectNumber == (ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes);
+                statusChanged |= itemData.AddBarcodeRead(barcodeRead);
+                return statusChanged;
+            }
+
+            public IEnumerable<Status> GetStatus()
+            {
+                yield return new(StatusType.Info, $"Pallet of type: {itemNumber}");
+                var expectedCount = ExpectedNumberOfBarcodes;
+                var actualCount = ItemsBySerialNumber.Count;
+                if (expectedCount != actualCount)
+                {
+                    string msg;
+                    if (actualCount > expectedCount) msg = $"Too many barcodes ({actualCount} > {expectedCount})";
+                    else if (actualCount < expectedCount) msg = $"Not enough barcodes ({actualCount} < {expectedCount})";
+                    else msg = $"{itemNumber} was not found in the Tyson Validation CSV";
+                    yield return new(StatusType.Error, msg);
+                }
+                foreach (var kv in ItemsBySerialNumber)
+                    foreach (var status in kv.Value.GetStatus())
+                        yield return status;
+            }
+
+            private int? ExpectedNumberOfBarcodes
+            {
+                get
+                {
+                    if (TysonCsvData.ExpectedCounts.TryGetValue(itemNumber, out int result))
+                        return result;
+                    else
+                        return null;
+                }
+            }
         }
 
-        public override IEnumerable<Status> Status => _status;
-        private readonly List<Status> _status = [];
-        
-        private readonly Dictionary<string, ValidationData> _currentScanData = [];
+        public override IEnumerable<Status> Status
+        {
+            get
+            {
+                if (PalletsByItemNumber.Count == 0 && FailedReads.Count == 0)
+                    yield return new(StatusType.Error, "Empty scan");
+                foreach (var failedRead in FailedReads)
+                    yield return new BarcodeReadStatus(StatusType.Error, failedRead, "Failed barcode read");
+                foreach (var kv in PalletsByItemNumber)
+                    foreach (var status in kv.Value.GetStatus())
+                        yield return status;
+            }
+        }
+
+        private readonly Dictionary<string, ValidationPerPallet> PalletsByItemNumber = [];
+        public readonly List<BarcodeRead> FailedReads = [];
 
         public override void AddBarcodeRead(BarcodeRead barcodeRead)
         {
-            TysonBarcode b = new(barcodeRead);
-            //Status s = new();
-            //s.AssociatedBarcodeRead = barcodeRead;
-            
-            if (!TysonCsvData.ExpectedCounts.ContainsKey(b.ItemNumber))
+            if (IsValidTysonBarcode(barcodeRead))
             {
-                //s.Type = StatusType.Error;
-                //s.Message = $"{b.ItemNumber} was not found in the Tyson Validation CSV";
-            } else
-            {
-                if (!_currentScanData.ContainsKey(b.ItemNumber)) _currentScanData[b.ItemNumber] = new();
-
-                _currentScanData[b.ItemNumber].Count++;
-                _currentScanData[b.ItemNumber].SerialNums.Add(b.SerialNumber);
-
-                bool rightAmount = _currentScanData[b.ItemNumber].Count == TysonCsvData.ExpectedCounts[b.ItemNumber];
-
-                //s.Type = rightAmount ? StatusType.Error : StatusType.Info;
-                //s.Message = $"{_currentScanData[b.ItemNumber]}/{TysonCsvData.ExpectedCounts[b.ItemNumber]} {TysonCsvData.ItemDescriptions[b.ItemNumber]} ({b.ItemNumber})";
+                bool statusChanged = PalletsByItemNumber.Count == 0 && FailedReads.Count == 0;
+                TysonBarcode tysonBarcodeRead = new(barcodeRead);
+                var itemNum = tysonBarcodeRead.ItemNumber;
+                if (!PalletsByItemNumber.TryGetValue(itemNum, out var palletData))
+                {
+                    palletData = new(itemNum);
+                    PalletsByItemNumber[itemNum] = palletData;
+                    statusChanged = true;
+                }
+                statusChanged |= palletData.AddBarcodeRead(tysonBarcodeRead);
+                if (statusChanged) NotfifyStatusUpdated();
             }
+            else
+            {
+                FailedReads.Add(barcodeRead);
+                NotfifyStatusUpdated();
+            }
+        }
 
-            //_status.Add(s);
+        private static bool IsValidTysonBarcode(BarcodeRead barcodeRead)
+        {
+            if (barcodeRead.BarcodeContent.Length != 46) return false;
+            return barcodeRead.BarcodeContent.All(char.IsAsciiDigit);
         }
     }
 
