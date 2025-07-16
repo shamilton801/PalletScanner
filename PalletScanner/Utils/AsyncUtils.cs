@@ -17,7 +17,7 @@ namespace PalletScanner.Utils
 
                 while (true)
                 {
-                    if (cancellationToken.IsCancellationRequested) break;
+                    cancellationToken.ThrowIfCancellationRequested();
                     var numBytesReceived = await sock.ReceiveAsync(inputBuffer, cancellationToken);
                     if (numBytesReceived == 0) break;
                     for (int i = 0; i < numBytesReceived; i++)
@@ -81,6 +81,19 @@ namespace PalletScanner.Utils
                 }
                 if (!cancellationToken.IsCancellationRequested)
                     yield return partialResult.ToString();
+            }
+        }
+
+        public static void WaitForCancel(this Task task)
+        {
+            try
+            {
+                task.Wait();
+            }
+            catch (Exception)
+            {
+                if (task.IsCanceled) return;
+                else throw;
             }
         }
     }
