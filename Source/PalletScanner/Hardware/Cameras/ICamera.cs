@@ -17,6 +17,6 @@ namespace PalletScanner.Hardware.Cameras
     public static class CameraEx
     {
         public static IAsyncEnumerable<BarcodeRead> ReadAllBarcodes(this IEnumerable<ICamera> cameras) =>
-            cameras.Select(cam => cam.ReadBarcodes()).Merge();
+            AsyncEnumerableEx.Merge(cameras.Select(cam => cam.ReadBarcodes()).ToArray());
     }
 }
