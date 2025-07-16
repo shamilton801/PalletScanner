@@ -44,17 +44,25 @@ namespace PalletScanner.Customers.Tyson
         public void AddBarcodeRead(BarcodeRead barcodeRead)
         {
             TysonBarcode b = new(barcodeRead);
-            if (!_currentScanData.ContainsKey(b.ItemNumber)) _currentScanData[b.ItemNumber] = new();
-
-            _currentScanData[b.ItemNumber].Count++;
-            _currentScanData[b.ItemNumber].SerialNums.Add(b.SerialNumber);
-
-            bool rightAmount = _currentScanData[b.ItemNumber].Count == TysonCsvData.ExpectedCounts[b.ItemNumber];
-
             Status s = new();
-            s.Type = rightAmount ? StatusType.Error : StatusType.Info;
             s.AssociatedBarcodeRead = barcodeRead;
-            s.Message = $"{_currentScanData[b.ItemNumber]}/{TysonCsvData.ExpectedCounts[b.ItemNumber]} {TysonCsvData.ItemDescriptions[b.ItemNumber]} ({b.ItemNumber})";
+            
+            if (!TysonCsvData.ExpectedCounts.ContainsKey(b.ItemNumber))
+            {
+                s.Type = StatusType.Error;
+                s.Message = $"{b.ItemNumber} was not found in the Tyson Validation CSV";
+            } else
+            {
+                if (!_currentScanData.ContainsKey(b.ItemNumber)) _currentScanData[b.ItemNumber] = new();
+
+                _currentScanData[b.ItemNumber].Count++;
+                _currentScanData[b.ItemNumber].SerialNums.Add(b.SerialNumber);
+
+                bool rightAmount = _currentScanData[b.ItemNumber].Count == TysonCsvData.ExpectedCounts[b.ItemNumber];
+
+                s.Type = rightAmount ? StatusType.Error : StatusType.Info;
+                s.Message = $"{_currentScanData[b.ItemNumber]}/{TysonCsvData.ExpectedCounts[b.ItemNumber]} {TysonCsvData.ItemDescriptions[b.ItemNumber]} ({b.ItemNumber})";
+            }
 
             Status.Add(s);
         }
