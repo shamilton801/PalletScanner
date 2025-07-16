@@ -87,11 +87,11 @@ namespace PalletScanner.Customers.Tyson
             public float TareWgt { get; set; }
         }
 
-        private static Dictionary<string, int> _expectedCounts = [];
-        private static Dictionary<string, string> _itemDescriptions = [];
+        private static readonly Dictionary<string, int> _expectedCounts = [];
+        private static readonly Dictionary<string, string> _itemDescriptions = [];
         private static bool _csvIsParsed = false;
 
-        public static Dictionary<string, int> ExpectedCounts 
+        public static IReadOnlyDictionary<string, int> ExpectedCounts 
         { 
             get
             {
@@ -99,7 +99,7 @@ namespace PalletScanner.Customers.Tyson
                 return _expectedCounts; 
             }
         }
-        public static Dictionary<string, string> ItemDescriptions
+        public static IReadOnlyDictionary<string, string> ItemDescriptions
         {
             get
             {
