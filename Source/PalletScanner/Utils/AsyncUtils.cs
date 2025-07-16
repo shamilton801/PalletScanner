@@ -90,11 +90,19 @@ namespace PalletScanner.Utils
             {
                 task.Wait();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 if (task.IsCanceled) return;
+                if (ex.IsCancellationException()) return;
                 else throw;
             }
+        }
+        public static bool IsCancellationException(this Exception ex)
+        {
+            if (ex is OperationCanceledException) return true;
+            if (ex is AggregateException ae)
+                return ae.InnerExceptions.All(e => e.IsCancellationException());
+            return false;
         }
     }
 }
