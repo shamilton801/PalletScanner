@@ -33,7 +33,7 @@ namespace PalletScanner.Customers.Tyson
     {
         private class ValidationPerPallet(string itemNumber)
         {
-            public class ValidationPerItem
+            public class ValidationPerItem(string serialNumber)
             {
                 public readonly List<BarcodeRead> Reads = [];
 
@@ -45,7 +45,7 @@ namespace PalletScanner.Customers.Tyson
 
                 public IEnumerable<Status> GetStatus()
                 {
-                    yield break;
+                    yield return new(StatusType.Info, $"Serial Number: {serialNumber}");
                 }
             }
 
@@ -53,21 +53,24 @@ namespace PalletScanner.Customers.Tyson
 
             public bool AddBarcodeRead(TysonBarcode barcodeRead)
             {
+                bool statusChanged = false;
                 bool hasCorrectNumber = ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes;
                 var sn = barcodeRead.SerialNumber;
                 if (!ItemsBySerialNumber.TryGetValue(sn, out var itemData))
                 {
-                    itemData = new();
+                    itemData = new(sn);
                     ItemsBySerialNumber[sn] = itemData;
+                    statusChanged = true;
                 }
-                bool statusChanged = hasCorrectNumber == (ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes);
+                statusChanged |= hasCorrectNumber != (ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes);
                 statusChanged |= itemData.AddBarcodeRead(barcodeRead);
                 return statusChanged;
             }
 
             public IEnumerable<Status> GetStatus()
             {
-                yield return new(StatusType.Info, $"Pallet of type: {itemNumber}");
+                if (!TysonCsvData.ItemDescriptions.TryGetValue(itemNumber, out var type)) type = itemNumber;
+                yield return new(StatusType.Info, $"Pallet of type: {type}");
                 var expectedCount = ExpectedNumberOfBarcodes;
                 var actualCount = ItemsBySerialNumber.Count;
                 if (expectedCount != actualCount)
@@ -101,8 +104,8 @@ namespace PalletScanner.Customers.Tyson
             {
                 if (PalletsByItemNumber.Count == 0 && FailedReads.Count == 0)
                     yield return new(StatusType.Error, "Empty scan");
-                foreach (var failedRead in FailedReads)
-                    yield return new BarcodeReadStatus(StatusType.Error, failedRead, "Failed barcode read");
+                //foreach (var failedRead in FailedReads)
+                //    yield return new BarcodeReadStatus(StatusType.Error, failedRead, "Failed barcode read");
                 foreach (var kv in PalletsByItemNumber)
                     foreach (var status in kv.Value.GetStatus())
                         yield return status;
@@ -130,8 +133,8 @@ namespace PalletScanner.Customers.Tyson
             }
             else
             {
-                FailedReads.Add(barcodeRead);
-                NotfifyStatusUpdated();
+                //FailedReads.Add(barcodeRead);
+                //NotfifyStatusUpdated();
             }
         }
 

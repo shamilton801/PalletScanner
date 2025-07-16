@@ -20,11 +20,17 @@ static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = def
     var validation = customer.CreateValidationSession();
     validation.StatusChanged += Validation_StatusChanged;
     Validation_StatusChanged(validation, validation.Status);
-    ArduinoIf.StartScanning();
-    await foreach (var barcode in cameras.ReadAllBarcodes().WithCancellation(token))
+    try
     {
-        Console.WriteLine("Barcode scanned: " + barcode.BarcodeContent);
-        validation.AddBarcodeRead(barcode);
+        await foreach (var barcode in cameras.ReadAllBarcodes().WithCancellation(token))
+        {
+            Console.WriteLine("Barcode scanned: " + barcode.BarcodeContent);
+            validation.AddBarcodeRead(barcode);
+        }
+    }
+    finally
+    {
+        Validation_StatusChanged(validation, validation.Status);
     }
 }
 
