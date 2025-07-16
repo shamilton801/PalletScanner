@@ -1,4 +1,4 @@
-﻿using PalletScanner.CustomerInterface;
+﻿using PalletScanner.Customers.Interface;
 using PalletScanner.Data;
 using System;
 using System.Collections.Generic;

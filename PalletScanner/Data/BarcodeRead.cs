@@ -1,4 +1,4 @@
-﻿using PalletScanner.HardwareInterface.Cameras;
+﻿using PalletScanner.Hardware.Cameras;
 using System.Drawing;
 
 namespace PalletScanner.Data

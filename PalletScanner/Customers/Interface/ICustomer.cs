@@ -1,4 +1,4 @@
-﻿namespace PalletScanner.CustomerInterface
+﻿namespace PalletScanner.Customers.Interface
 {
     public interface ICustomer
     {

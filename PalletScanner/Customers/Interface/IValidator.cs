@@ -1,6 +1,6 @@
 ﻿using PalletScanner.Data;
 
-namespace PalletScanner.CustomerInterface
+namespace PalletScanner.Customers.Interface
 {
     public interface IValidator
     {

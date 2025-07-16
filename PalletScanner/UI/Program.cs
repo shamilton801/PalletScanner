@@ -1,6 +1,6 @@
-﻿using PalletScanner.CustomerInterface;
+﻿using PalletScanner.Customers.Interface;
 using PalletScanner.Customers.Tyson;
-using PalletScanner.HardwareInterface.Cameras;
+using PalletScanner.Hardware.Cameras;
 using PalletScanner.Utils;
 using System.Net;
 

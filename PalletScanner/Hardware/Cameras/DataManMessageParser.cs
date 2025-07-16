@@ -4,7 +4,7 @@ using System.Buffers;
 using System.Drawing;
 using System.Text;
 
-namespace PalletScanner.HardwareInterface.Cameras
+namespace PalletScanner.Hardware.Cameras
 {
     internal static class DataManMessageParser
     {

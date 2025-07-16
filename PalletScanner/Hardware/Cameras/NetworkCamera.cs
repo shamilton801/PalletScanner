@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace PalletScanner.HardwareInterface.Cameras
+namespace PalletScanner.Hardware.Cameras
 {
     public abstract class NetworkCamera(IPEndPoint endPoint, char seperator = '\r') : ICamera
     {
