@@ -7,8 +7,9 @@ const int triggerPin2 = 4; // Camera trigger 2 (mirrored)
 const int cameraPhaseDelay_us = 12600;  // Try 050µs delay to start
 
 volatile uint8_t overflowCount = 0;
+static bool running = false;
 
-void setup() {
+void light_and_camera_setup() {
   pinMode(pwmPin1, OUTPUT);
   pinMode(triggerPin1, OUTPUT);
   pinMode(triggerPin2, OUTPUT);
@@ -29,7 +30,21 @@ void setup() {
   TCCR3B = 0;
 }
 
+void set_running_status(bool enable) {
+  if (enable == running) return;
+
+  noInterrupts();
+  digitalWrite(triggerPin1, LOW);
+  digitalWrite(triggerPin2, LOW);
+  running = enable;
+  noInterrupts();
+}
+
 ISR(TIMER1_OVF_vect) {
+  if (!running) {
+    return;
+  }
+
   overflowCount++;
 
   if (overflowCount >= 6) { // 72Hz / 12Hz = every 6th cycle
@@ -54,12 +69,10 @@ ISR(TIMER1_OVF_vect) {
 }
 
 ISR(TIMER3_COMPA_vect) {
+  if (!running) return;
+  
   digitalWrite(triggerPin1, LOW);
   digitalWrite(triggerPin2, LOW);
   TCCR3B = 0;
   TIMSK3 &= ~(1 << OCIE3A);
-}
-
-void loop() {
-  // Nothing here
 }
