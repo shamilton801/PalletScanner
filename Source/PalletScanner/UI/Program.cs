@@ -53,19 +53,18 @@ static void RunToCancel(Func<CancellationToken, Task> task)
 
 ICamera[] CreateJordansCameras() => [ new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514") ];
 ICamera[] CreateScannerCameras() => [
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.109"), "DM3812-1-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.108"), "DM3812-2-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.107"), "DM3812-3-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.106"), "DM3812-4-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.105"), "DM3812-5-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.104"), "DM3812-6-1"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.103"), "DM3812-7-1"),
-
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.119"), "DM3812-1-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.118"), "DM3812-2-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.117"), "DM3812-3-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.116"), "DM3812-4-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.115"), "DM3812-5-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.114"), "DM3812-6-2"),
-    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.113"), "DM3812-7-2"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.103"), "7-1-DM3812-371BE6"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.104"), "6-1-DM3812-371068"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.105"), "5-1-DM3812-371D96"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.106"), "4-1-DM3812-36A236"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.107"), "3-1-DM3812-371E12"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.108"), "2-1-DM3812-371DA6"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.109"), "1-1-DM3812-371E32"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.113"), "7-2-DM3812-371D9A"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.114"), "6-2-DM3812-371CAA"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.115"), "5-2-DM3812-370EE4"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.116"), "4-2-DM3812-371DAE"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.117"), "3-2-DM3812-371DB6"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.118"), "2-2-DM3812-371CA6"),
+    new DatamanNetworkCamera(IPAddress.Parse("10.191.0.119"), "1-2-DM3812-36E25C"),
 ];
