@@ -51,6 +51,7 @@ static void Validation_StatusChanged(IValidator sender, IEnumerable<Status> newS
 static void RunToCancel(Func<CancellationToken, Task> task)
 {
     CancellationTokenSource cts = new();
+	ArduinoIf.StartScanning();
     Task.WhenAll(Task.Run(() =>
     {
         Console.WriteLine("Press any key to cancel...");
