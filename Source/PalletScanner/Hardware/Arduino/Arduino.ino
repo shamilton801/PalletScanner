@@ -1,5 +1,3 @@
-#define CAMERA_LINE_1_TRIGGER 4
-#define CAMERA_LINE_2_TRIGGER 5
 #define BAUD 9600
 
 #define START_SCAN 0xD0
@@ -11,6 +9,7 @@ void stop_scan();
 
 void setup() {
   Serial.begin(BAUD);
+  light_and_camera_setup();
 }
 
 void loop() {
@@ -31,9 +30,9 @@ void process_byte(uint8_t byte) {
 }
 
 void start_scan() {
-  // Start jeremy's camera/lights code
+  set_running_status(true);
 }
 
 void stop_scan() {
-  // Stop jeremy's camera/lights code
+  set_running_status(false);
 }
