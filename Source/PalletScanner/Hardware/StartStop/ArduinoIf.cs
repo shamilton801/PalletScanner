@@ -2,24 +2,26 @@
 using PalletScanner.Customers.Interface;
 using PalletScanner.Data;
 
-namespace PalletScanner.Hardware.Arduino
+namespace PalletScanner.Hardware.StartStop
 {
-    public class ArduinoIf
+    public class ArduinoIf : AbstractStartStop
     {
         private const byte START_BYTE = 0xD0;
         private const byte STOP_BYTE = 0xD1;
-        private const string PORT = "COM3";
         private const int BAUD = 9600;
 
-        private static SerialPort port = new SerialPort(PORT, BAUD, Parity.None, 8, StopBits.One);
+        private readonly SerialPort port;
 
-        static ArduinoIf()
+        private bool _disposed = false;
+
+        public ArduinoIf(string PORT)
         {
+            port = new(PORT, BAUD, Parity.None, 8, StopBits.One);
             port.DataReceived += Port_DataReceived;
             port.Open();
         }
 
-        private static void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             SerialPort spL = (SerialPort)sender;
             byte[] buf = new byte[spL.BytesToRead];
@@ -33,26 +35,34 @@ namespace PalletScanner.Hardware.Arduino
             spL.Read(buf, 0, buf.Length);
             
             // We only care about the last byte received
-            if (buf.Last() ==  START_BYTE)
+            switch (buf.Last())
             {
-                // bla bla bla trigger an event to start a scan
-                // I am tired and want to go to bed
+                case START_BYTE: OnStartTrigger(); break;
+                case STOP_BYTE: OnStopTrigger(); break;
             }
         }
 
-        public static void StartScanning()
+        public override void StartScanning()
         {
             port.Write([START_BYTE], 0, 1);
         }
 
-        public static void StopScanning()
+        public override void StopScanning()
         {
             port.Write([STOP_BYTE], 0, 1);
         }
 
-        public static void Close()
+        protected override void Dispose(bool disposing)
         {
+            if (_disposed) return;
             port.Close();
+            _disposed = true;
+        }
+
+        ~ArduinoIf()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
         }
     }
 }

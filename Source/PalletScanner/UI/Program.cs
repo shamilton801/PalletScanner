@@ -1,23 +1,14 @@
 ﻿using PalletScanner.Customers.Interface;
 using PalletScanner.Customers.Tyson;
 using PalletScanner.Data;
-using PalletScanner.Hardware.Arduino;
+using PalletScanner.Hardware.StartStop;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Utils;
 using System.Net;
-using System.Net.Quic;
 
 const bool isJordan = false;
 
 var cameras = isJordan ? CreateJordansCameras() : CreateScannerCameras();
-
-AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
-
-static void OnProcessExit(object sender, EventArgs e)
-{
-    Console.WriteLine("Closing Serial Port");
-    ArduinoIf.Close();
-}
 
 RunToCancel(tok => Run<Tyson>(cameras, tok));
 
@@ -62,6 +53,10 @@ static void RunToCancel(Func<CancellationToken, Task> task)
     CancellationTokenSource cts = new();
     Task.WhenAll(Task.Run(() =>
     {
+        using IStartStop startStop = isJordan ? new TestStartStop() : new ArduinoIf("COM3");
+        startStop.StartTriggered += s => s.StartScanning();
+        startStop.StopTriggered += s => s.StopScanning();
+
         bool running = true;
         while (running)
         {
@@ -70,11 +65,11 @@ static void RunToCancel(Func<CancellationToken, Task> task)
             {
                 case ConsoleKey.S:
                     Console.WriteLine("Starting Scan");
-                    ArduinoIf.StartScanning();
+                    startStop.StartScanning();
                     break;
                 case ConsoleKey.P:
                     Console.WriteLine("Stopping Scan");
-                    ArduinoIf.StopScanning();
+                    startStop.StopScanning();
                     break;
                 case ConsoleKey.Q:
                     Console.WriteLine("Quitting");
@@ -82,7 +77,7 @@ static void RunToCancel(Func<CancellationToken, Task> task)
                     break;
             }
         }
-        ArduinoIf.StopScanning();
+        startStop.StopScanning();
         cts.Cancel();
     }), task(cts.Token)).WaitForCancel();
 }
