@@ -119,7 +119,7 @@ namespace PalletScanner.Customers.Tyson
         {
             if (IsValidTysonBarcode(barcodeRead))
             {
-                bool statusChanged = PalletsByItemNumber.Count == 0 && FailedReads.Count == 0;
+                bool statusChanged = PalletsByItemNumber.Count == 0 && FailedReads.Count == 0; // true on startup
                 TysonBarcode tysonBarcodeRead = new(barcodeRead);
                 var itemNum = tysonBarcodeRead.ItemNumber;
                 if (!PalletsByItemNumber.TryGetValue(itemNum, out var palletData))
@@ -140,8 +140,7 @@ namespace PalletScanner.Customers.Tyson
 
         private static bool IsValidTysonBarcode(BarcodeRead barcodeRead)
         {
-            if (barcodeRead.BarcodeContent.Length != 46) return false;
-            return barcodeRead.BarcodeContent.All(char.IsAsciiDigit);
+            return barcodeRead.BarcodeContent.Length == 46 && barcodeRead.BarcodeContent.All(char.IsAsciiDigit);
         }
     }
 
