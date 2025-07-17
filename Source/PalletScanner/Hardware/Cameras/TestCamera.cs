@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace PalletScanner.Hardware.Cameras
 {
-    public class TestCamera(string name) : ICamera
+    public class TestCamera(string name) : AbstractCamera
     {
-        public string Name => name;
+        public override string Name => name;
 
         private class Node(BarcodeRead barcode)
         {
@@ -21,7 +21,7 @@ namespace PalletScanner.Hardware.Cameras
             Next = n.Next;
         }
 
-        public IAsyncEnumerable<BarcodeRead> ReadBarcodes()
+        public override IAsyncEnumerable<BarcodeRead> ReadBarcodes()
         {
             return Core(Next, default);
             static async IAsyncEnumerable<BarcodeRead> Core(TaskCompletionSource<Node> next,

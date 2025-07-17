@@ -65,8 +65,16 @@ namespace PalletScanner.Hardware.Cameras
         /// </item>
         /// </list>
         /// </summary>
-        Pose? CameraPose => null;
-        CameraParameters? CameraParams => null;
+        Pose? CameraPose { get; }
+        CameraParameters? CameraParams { get; }
+    }
+
+    public abstract class AbstractCamera : ICamera
+    {
+        public abstract string Name { get; }
+        public Pose? CameraPose { get; set; } = null;
+        public CameraParameters? CameraParams { get; set; } = null;
+        public abstract IAsyncEnumerable<BarcodeRead> ReadBarcodes();
     }
 
     public static class CameraEx

@@ -6,13 +6,11 @@ using System.Text;
 
 namespace PalletScanner.Hardware.Cameras
 {
-    public abstract class NetworkCamera(IPEndPoint endPoint, char seperator = '\r') : ICamera
+    public abstract class NetworkCamera(IPEndPoint endPoint, char seperator = '\r') : AbstractCamera
     {
-        public abstract string Name { get; }
-
         private readonly TcpClient _client = CreateConnected(endPoint);
 
-        public IAsyncEnumerable<BarcodeRead> ReadBarcodes() =>
+        public override IAsyncEnumerable<BarcodeRead> ReadBarcodes() =>
             Encoding.Default.DecodeAsync(_client.Client.ReceiveAllAsync())
             .SplitIntoStrings(seperator).SelectMany(str => ParseMessage(str).ToAsyncEnumerable());
 
