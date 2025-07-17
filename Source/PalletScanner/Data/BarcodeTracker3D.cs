@@ -11,6 +11,9 @@ namespace PalletScanner.Data
 
         public static SpatialProperties operator *(Pose txfm, SpatialProperties val) =>
             new(txfm * val.Location, val.Size);
+
+        public override readonly string ToString() =>
+            $"{Location} / {{{Size.Width} x {Size.Height}}}";
     }
 
     public class BarcodeTracker3D

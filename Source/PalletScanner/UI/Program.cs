@@ -23,6 +23,7 @@ static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = def
         await foreach (var barcode in cameras.ReadAllBarcodes().WithCancellation(token))
         {
             Console.WriteLine("Barcode scanned: " + barcode.BarcodeContent);
+            Console.WriteLine("Barcode location/size: " + (barcode.Compute3D(new(0.25f, 18.0f))?.ToString() ?? "<Invalid>"));
             validation.AddBarcodeRead(barcode);
         }
     }
@@ -60,7 +61,13 @@ static void RunToCancel(Func<CancellationToken, Task> task)
 
 ICamera[] CreateJordansCameras() => [
     new TestCamera("Test"),
-    new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514")
+    new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514") {
+        CameraPose = Pose.Identity,
+        CameraParams = new() {
+            CameraSize = new(1280, 960),
+            FocalLengthPixels = 1000
+        }
+    }
 ];
 ICamera[] CreateScannerCameras() => [
     new DatamanNetworkCamera(IPAddress.Parse("10.191.0.103"), "7-1-DM3812-371BE6"),
