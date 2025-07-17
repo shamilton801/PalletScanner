@@ -58,7 +58,10 @@ static void RunToCancel(Func<CancellationToken, Task> task)
     Console.WriteLine("Operation cancelled");
 }
 
-ICamera[] CreateJordansCameras() => [ new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514") ];
+ICamera[] CreateJordansCameras() => [
+    new TestCamera("Test"),
+    new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514")
+];
 ICamera[] CreateScannerCameras() => [
     new DatamanNetworkCamera(IPAddress.Parse("10.191.0.103"), "7-1-DM3812-371BE6"),
     new DatamanNetworkCamera(IPAddress.Parse("10.191.0.104"), "6-1-DM3812-371068"),
