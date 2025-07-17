@@ -1,5 +1,6 @@
 ﻿using PalletScanner.Hardware.Cameras;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace PalletScanner.Data
 {
@@ -21,5 +22,19 @@ namespace PalletScanner.Data
         public float BaselineAngle => baselineAngle;
         public float ModuleSizePixels => moduleSizePixels;
         public PointF[]? BarcodeCorners => barcodeCorners;
+
+        public SpatialProperties? Compute3D(SizeF physicalModuleSize) =>
+            GetTracker3D().ComputeWorld(this, physicalModuleSize);
+        public SpatialProperties? Compute3DLocal(SizeF physicalModuleSize) =>
+            GetTracker3D().ComputeLocal(this, physicalModuleSize);
+
+        private static readonly ConditionalWeakTable<ICamera, BarcodeTracker3D> Tracker3DByCamera = [];
+        private BarcodeTracker3D GetTracker3D()
+        {
+            if (Tracker3DByCamera.TryGetValue(source, out var result)) return result;
+            result = new(source);
+            Tracker3DByCamera.Add(source, result);
+            return result;
+        }
     }
 }
