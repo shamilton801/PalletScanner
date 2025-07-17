@@ -35,17 +35,24 @@ static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = def
     }
 }
 
-static void Validation_StatusChanged(IValidator sender, IEnumerable<Status> newStatus)
+static void Validation_StatusChanged(IValidator sender, IEnumerable<IStatus> newStatus)
 {
-    foreach (var status in newStatus)
+    Print(0, newStatus);
+}
+static void Print(int indent, IEnumerable<IStatus> list)
+{
+    foreach (var status in list)
     {
+        for (int i = 0; i < indent; i++)
+            Console.Write("    ");
         Console.WriteLine(status.Type switch
         {
-            StatusType.Info     => "   Info: ",
-            StatusType.Warning  => "WARNING: ",
-            StatusType.Error    => "  ERROR: ",
-            _                   => "Unknown: "
+            StatusType.Info => "   Info: ",
+            StatusType.Warning => "WARNING: ",
+            StatusType.Error => "  ERROR: ",
+            _ => "Unknown: "
         } + status.Message);
+        Print(indent + 1, status.ChildStatus);
     }
 }
 

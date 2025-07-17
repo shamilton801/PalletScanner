@@ -31,63 +31,58 @@ namespace PalletScanner.Customers.Tyson
 
     public class TysonValidator : AbstractValidator
     {
-        private readonly Dictionary<string, Dictionary<string, Status>> _itemNumberTracking = [];
-        public override IEnumerable<Status> Status
+        // valid item number -> serial number -> status
+        private readonly Dictionary<string, Dictionary<string, LeafStatus>> _itemNumberTracking = [];
+        public override IEnumerable<IStatus> Status
         {
             get
             {
-                foreach (KeyValuePair<string, Dictionary<string, Status>> pair in _itemNumberTracking)
+                foreach (var pair in _itemNumberTracking)
                 {
                     int counted = pair.Value.Count;
                     int expected = TysonCsvData.ExpectedCounts[pair.Key];
                     string msg = $"{counted}/{expected} {TysonCsvData.ItemDescriptions[pair.Key]} ({pair.Key})";
-                    Status status = new(counted == expected ? StatusType.Info : StatusType.Error, msg);
-                    status.ChildStatus = _itemNumberTracking[pair.Key].Select(x => x.Value).ToList();
-                    yield return new(StatusType.Error, msg);
+                    ParentStatus status = new(counted == expected ? StatusType.Info : StatusType.Error, msg);
+                    status.ChildStatus.AddRange(_itemNumberTracking[pair.Key].Select(x => x.Value));
+                    yield return status;
                 }
             }
         }
 
         public override void AddBarcodeRead(BarcodeRead barcodeRead)
         {
-            if (IsValidTysonBarcode(barcodeRead))
+            var tysonBarcodeRead = AsValidTysonBarcode(barcodeRead);
+            if (tysonBarcodeRead == null) return;
+
+            bool statusChanged = false;
+
+            var itemNum = tysonBarcodeRead.ItemNumber;
+            if (!_itemNumberTracking.TryGetValue(itemNum, out var serialTracking)) 
             {
-                bool statusChanged = false;
-                TysonBarcode tysonBarcodeRead = new(barcodeRead);
-
-                var itemNum = tysonBarcodeRead.ItemNumber;
-                if (!_itemNumberTracking.TryGetValue(itemNum, out var serialTracking)) 
-                {
-                    serialTracking = [];
-                    statusChanged = true;
-                }
-                
-                var serialNum = tysonBarcodeRead.SerialNumber;
-                if (!serialTracking.TryGetValue(serialNum, out var status))
-                {
-                    status = new(StatusType.Info, $"{serialNum}");
-                    serialTracking[serialNum] = status;
-                    statusChanged = true;
-                }
-                status.AssociatedBarcodeReads = new List<BarcodeRead>();
-
-                if (serialTracking.Count == TysonCsvData.ExpectedCounts[itemNum])
-                {
-                    statusChanged = true;
-                }
-
-                if (statusChanged) NotfifyStatusUpdated();
+                serialTracking = [];
+                _itemNumberTracking[itemNum] = serialTracking;
+                statusChanged = true;
             }
-            else
+
+            var serialNum = tysonBarcodeRead.SerialNumber;
+            if (!serialTracking.TryGetValue(serialNum, out var status))
             {
-                //FailedReads.Add(barcodeRead);
-                //NotfifyStatusUpdated();
+                status = new LeafStatus(StatusType.Info, $"{serialNum}");
+                serialTracking[serialNum] = status;
+                statusChanged = true;
             }
+            status.AssociatedBarcodeReads.Add(barcodeRead);
+
+            if (statusChanged) NotfifyStatusUpdated();
         }
 
-        private static bool IsValidTysonBarcode(BarcodeRead barcodeRead)
+        private static TysonBarcode? AsValidTysonBarcode(BarcodeRead barcodeRead)
         {
-            return barcodeRead.BarcodeContent.Length == 46 && barcodeRead.BarcodeContent.All(char.IsAsciiDigit);
+            if (barcodeRead.BarcodeContent.Length != 46) return null;
+            if (!barcodeRead.BarcodeContent.All(char.IsAsciiDigit)) return null;
+            TysonBarcode result = new(barcodeRead);
+            if (!TysonCsvData.ExpectedCounts.ContainsKey(result.ItemNumber)) return null;
+            return result;
         }
     }
 
