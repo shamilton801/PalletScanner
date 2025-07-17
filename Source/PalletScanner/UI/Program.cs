@@ -5,6 +5,7 @@ using PalletScanner.Hardware.Arduino;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Utils;
 using System.Net;
+using System.Net.Quic;
 
 const bool isJordan = false;
 
@@ -51,15 +52,31 @@ static void Validation_StatusChanged(IValidator sender, IEnumerable<Status> newS
 static void RunToCancel(Func<CancellationToken, Task> task)
 {
     CancellationTokenSource cts = new();
-	ArduinoIf.StartScanning();
     Task.WhenAll(Task.Run(() =>
     {
-        Console.WriteLine("Press any key to cancel...");
-        Console.ReadKey();
-        cts.Cancel();
+        bool running = true;
+        while (running)
+        {
+            Console.WriteLine("s: start | p: stop | q: quit");
+            switch (Console.ReadKey().Key)
+            {
+                case ConsoleKey.S:
+                    Console.WriteLine("Starting Scan");
+                    ArduinoIf.StartScanning();
+                    break;
+                case ConsoleKey.P:
+                    Console.WriteLine("Stopping Scan");
+                    ArduinoIf.StopScanning();
+                    break;
+                case ConsoleKey.Q:
+                    Console.WriteLine("Quitting");
+                    running = false;
+                    break;
+            }
+        }
     }), task(cts.Token)).WaitForCancel();
     ArduinoIf.StopScanning();
-    Console.WriteLine("Operation cancelled");
+    cts.Cancel();
 }
 
 ICamera[] CreateJordansCameras() => [ new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514") ];

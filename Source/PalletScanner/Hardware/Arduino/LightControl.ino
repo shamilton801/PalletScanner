@@ -1,7 +1,3 @@
-const int pwmPin1     = 9; // Timer1 OC1A — LED dimming
-const int triggerPin1 = 5; // Camera trigger 1
-const int triggerPin2 = 4; // Camera trigger 2 (mirrored)
-
 // Adjust this value to add delay or advancement
 // Positive = delay, Negative = advance
 const int cameraPhaseDelay_us = 12600;  // Try 050µs delay to start

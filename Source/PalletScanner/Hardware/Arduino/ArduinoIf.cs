@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.IO.Ports;
+﻿using System.IO.Ports;
 
 namespace PalletScanner.Hardware.Arduino
 {
@@ -12,8 +6,10 @@ namespace PalletScanner.Hardware.Arduino
     {
         private const byte START_BYTE = 0xD0;
         private const byte STOP_BYTE = 0xD1;
+        private const string PORT = "COM4";
+        private const int BAUD = 9600;
 
-        private static SerialPort port = new SerialPort("COM4", 9600, Parity.None, 8, StopBits.One);
+        private static SerialPort port = new SerialPort(PORT, BAUD, Parity.None, 8, StopBits.One);
         
         public static void StartScanning()
         {
