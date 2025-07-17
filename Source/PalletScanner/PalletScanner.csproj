@@ -8,12 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Interactive.Async" Version="6.0.3" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.3" />
+    <Compile Remove="Hardware\LightControl\**" />
+    <EmbeddedResource Remove="Hardware\LightControl\**" />
+    <None Remove="Hardware\LightControl\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Hardware\LightControl\" />
+    <PackageReference Include="System.Interactive.Async" Version="6.0.3" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.7" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.3" />
   </ItemGroup>
 
   <Target Name="CopyTysonCsv" AfterTargets="AfterBuild">

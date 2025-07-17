@@ -33,14 +33,10 @@ void set_running_status(bool enable) {
   digitalWrite(triggerPin1, LOW);
   digitalWrite(triggerPin2, LOW);
   running = enable;
-  noInterrupts();
+  interrupts();
 }
 
 ISR(TIMER1_OVF_vect) {
-  if (!running) {
-    return;
-  }
-
   overflowCount++;
 
   if (overflowCount >= 6) { // 72Hz / 12Hz = every 6th cycle
@@ -52,8 +48,10 @@ ISR(TIMER1_OVF_vect) {
     }
 
     // Start camera pulse
-    digitalWrite(triggerPin1, HIGH);
-    digitalWrite(triggerPin2, HIGH);
+    if (running) {
+      digitalWrite(triggerPin1, HIGH);
+      digitalWrite(triggerPin2, HIGH);      
+    }
 
     // 714 µs = 1428 ticks at 2MHz (prescaler = 8)
     OCR3A = 1428;
@@ -65,10 +63,11 @@ ISR(TIMER1_OVF_vect) {
 }
 
 ISR(TIMER3_COMPA_vect) {
-  if (!running) return;
   
-  digitalWrite(triggerPin1, LOW);
-  digitalWrite(triggerPin2, LOW);
+  if (running) {
+    digitalWrite(triggerPin1, LOW);
+    digitalWrite(triggerPin2, LOW); 
+  }
   TCCR3B = 0;
   TIMSK3 &= ~(1 << OCIE3A);
 }

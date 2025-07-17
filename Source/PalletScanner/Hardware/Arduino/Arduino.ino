@@ -30,11 +30,17 @@ void loop() {
 void process_byte(uint8_t byte) {
   switch (byte) {
     case START_SCAN_BYTE:
+      Serial.write("starting");
       set_running_status(true);
       break;
     case STOP_SCAN_BYTE:
+      Serial.write("stopping");
       set_running_status(false);
       break;
+  }
+
+  if (byte >= 0) {
+    Serial.write(byte);
   }
 }
 
@@ -57,4 +63,3 @@ void check_ext_trigger() {
   }
 
 }
-

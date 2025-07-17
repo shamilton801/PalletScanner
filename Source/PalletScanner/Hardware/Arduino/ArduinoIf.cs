@@ -8,7 +8,7 @@ namespace PalletScanner.Hardware.Arduino
     {
         private const byte START_BYTE = 0xD0;
         private const byte STOP_BYTE = 0xD1;
-        private const string PORT = "COM4";
+        private const string PORT = "COM3";
         private const int BAUD = 9600;
 
         private static SerialPort port = new SerialPort(PORT, BAUD, Parity.None, 8, StopBits.One);
@@ -25,7 +25,10 @@ namespace PalletScanner.Hardware.Arduino
             byte[] buf = new byte[spL.BytesToRead];
 
             if (spL.BytesToRead > 1)
-                Console.WriteLine("More than 1 bytes received from arduino. This indicates an issue with the arduino logic");
+            {
+                //Console.WriteLine("More than 1 bytes received from arduino. This indicates an issue with the arduino logic");
+                Console.WriteLine(System.Text.Encoding.UTF8.GetString(buf));
+            }
 
             spL.Read(buf, 0, buf.Length);
             
@@ -45,6 +48,11 @@ namespace PalletScanner.Hardware.Arduino
         public static void StopScanning()
         {
             port.Write([STOP_BYTE], 0, 1);
+        }
+
+        public static void Close()
+        {
+            port.Close();
         }
     }
 }

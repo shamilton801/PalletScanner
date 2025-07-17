@@ -11,6 +11,14 @@ const bool isJordan = false;
 
 var cameras = isJordan ? CreateJordansCameras() : CreateScannerCameras();
 
+AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+
+static void OnProcessExit(object sender, EventArgs e)
+{
+    Console.WriteLine("Closing Serial Port");
+    ArduinoIf.Close();
+}
+
 RunToCancel(tok => Run<Tyson>(cameras, tok));
 
 static async Task Run<Customer>(ICamera[] cameras, CancellationToken token = default)
@@ -74,9 +82,9 @@ static void RunToCancel(Func<CancellationToken, Task> task)
                     break;
             }
         }
+        ArduinoIf.StopScanning();
+        cts.Cancel();
     }), task(cts.Token)).WaitForCancel();
-    ArduinoIf.StopScanning();
-    cts.Cancel();
 }
 
 ICamera[] CreateJordansCameras() => [ new DatamanNetworkCamera(IPAddress.Parse("192.168.1.42"), "DM262-852514") ];
