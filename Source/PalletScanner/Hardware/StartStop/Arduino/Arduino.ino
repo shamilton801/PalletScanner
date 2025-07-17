@@ -7,7 +7,7 @@ const int pwmPin1              = 9;   // Timer1 OC1A — LED dimming
 const int triggerPin1          = 5;   // Camera trigger 1
 const int triggerPin2          = 4;   // Camera trigger 2 (mirrored)
 const int extTriggerPin        = 0;   // External trigger (for external source to start/stop scan)
-const unsigned long debounceMs = 100; // How long to wait to make sure a change in state is not a simple blip in power
+const unsigned long debounceMs = 50; // How long to wait to make sure a change in state is not a simple blip in power
 
 static int extTriggerPinState;
 static unsigned long debounceReadTime;
@@ -23,8 +23,8 @@ void setup() {
 void loop() {
   if (Serial.available() > 0) {
     process_byte(Serial.read());
-    check_ext_trigger();
   }
+  check_ext_trigger();
 }
 
 void process_byte(uint8_t byte) {
@@ -38,10 +38,6 @@ void process_byte(uint8_t byte) {
       set_running_status(false);
       break;
   }
-
-  if (byte >= 0) {
-    Serial.write(byte);
-  }
 }
 
 void check_ext_trigger() {
@@ -53,13 +49,14 @@ void check_ext_trigger() {
 
   if (debouncing && (millis() - debounceReadTime) > debounceMs) {
     // Right now we only care risig edge conditions to start a scan
-    Serial.write(START_SCAN_BYTE);
-    
+    if (newPinState == HIGH) {
+      Serial.write("Received ext trigger");
+      Serial.write(START_SCAN_BYTE);
+    }
     debouncing = false;
     extTriggerPinState = newPinState;
   } else if (!debouncing) {
     debouncing = true;
     debounceReadTime = millis();
   }
-
 }

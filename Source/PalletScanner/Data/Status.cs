@@ -5,21 +5,29 @@
         Info, Warning, Error
     }
 
-    public class Status(StatusType type, string message = "")
+    public interface IStatus
+    {
+        StatusType Type { get; }
+        string Message { get; }
+        IEnumerable<BarcodeRead> AssociatedBarcodeReads { get; }
+        IEnumerable<IStatus> ChildStatus { get; }
+    }
+
+    public class LeafStatus(StatusType type, string message = "") : IStatus
     {
         public StatusType Type => type;
         public string Message => message;
-        public virtual IEnumerable<BarcodeRead> AssociatedBarcodeReads => [];
+        public List<BarcodeRead> AssociatedBarcodeReads { get; } = [];
+        IEnumerable<BarcodeRead> IStatus.AssociatedBarcodeReads => AssociatedBarcodeReads;
+        public IEnumerable<IStatus> ChildStatus => [];
     }
 
-    public class BarcodeReadStatus(StatusType type, BarcodeRead barcode, string message = "") : Status(type, message)
+    public class ParentStatus(StatusType type, string message = "") : IStatus
     {
-        public override IEnumerable<BarcodeRead> AssociatedBarcodeReads => [ barcode ];
-    }
-
-    public class BarcodeReadListStatus(StatusType type, string message = "") : Status(type, message)
-    {
-        public override IEnumerable<BarcodeRead> AssociatedBarcodeReads => BarcodeReads;
-        public readonly List<BarcodeRead> BarcodeReads = [];
+        public StatusType Type => type;
+        public string Message => message;
+        public IEnumerable<BarcodeRead> AssociatedBarcodeReads => [];
+        public List<IStatus> ChildStatus { get; } = [];
+        IEnumerable<IStatus> IStatus.ChildStatus => ChildStatus;
     }
 }
