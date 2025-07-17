@@ -1,7 +1,3 @@
-const int pwmPin1     = 9; // Timer1 OC1A — LED dimming
-const int triggerPin1 = 5; // Camera trigger 1
-const int triggerPin2 = 4; // Camera trigger 2 (mirrored)
-
 // Adjust this value to add delay or advancement
 // Positive = delay, Negative = advance
 const int cameraPhaseDelay_us = 12600;  // Try 050µs delay to start
@@ -37,14 +33,10 @@ void set_running_status(bool enable) {
   digitalWrite(triggerPin1, LOW);
   digitalWrite(triggerPin2, LOW);
   running = enable;
-  noInterrupts();
+  interrupts();
 }
 
 ISR(TIMER1_OVF_vect) {
-  if (!running) {
-    return;
-  }
-
   overflowCount++;
 
   if (overflowCount >= 6) { // 72Hz / 12Hz = every 6th cycle
@@ -56,8 +48,10 @@ ISR(TIMER1_OVF_vect) {
     }
 
     // Start camera pulse
-    digitalWrite(triggerPin1, HIGH);
-    digitalWrite(triggerPin2, HIGH);
+    if (running) {
+      digitalWrite(triggerPin1, HIGH);
+      digitalWrite(triggerPin2, HIGH);      
+    }
 
     // 714 µs = 1428 ticks at 2MHz (prescaler = 8)
     OCR3A = 1428;
@@ -69,10 +63,11 @@ ISR(TIMER1_OVF_vect) {
 }
 
 ISR(TIMER3_COMPA_vect) {
-  if (!running) return;
   
-  digitalWrite(triggerPin1, LOW);
-  digitalWrite(triggerPin2, LOW);
+  if (running) {
+    digitalWrite(triggerPin1, LOW);
+    digitalWrite(triggerPin2, LOW); 
+  }
   TCCR3B = 0;
   TIMSK3 &= ~(1 << OCIE3A);
 }
