@@ -1,4 +1,6 @@
 ﻿using System.IO.Ports;
+using PalletScanner.Customers.Interface;
+using PalletScanner.Data;
 
 namespace PalletScanner.Hardware.Arduino
 {
@@ -10,7 +12,31 @@ namespace PalletScanner.Hardware.Arduino
         private const int BAUD = 9600;
 
         private static SerialPort port = new SerialPort(PORT, BAUD, Parity.None, 8, StopBits.One);
-        
+
+        static ArduinoIf()
+        {
+            port.DataReceived += Port_DataReceived;
+            port.Open();
+        }
+
+        private static void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            SerialPort spL = (SerialPort)sender;
+            byte[] buf = new byte[spL.BytesToRead];
+
+            if (spL.BytesToRead > 1)
+                Console.WriteLine("More than 1 bytes received from arduino. This indicates an issue with the arduino logic");
+
+            spL.Read(buf, 0, buf.Length);
+            
+            // We only care about the last byte received
+            if (buf.Last() ==  START_BYTE)
+            {
+                // bla bla bla trigger an event to start a scan
+                // I am tired and want to go to bed
+            }
+        }
+
         public static void StartScanning()
         {
             port.Write([START_BYTE], 0, 1);

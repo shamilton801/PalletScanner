@@ -39,7 +39,7 @@ void process_byte(uint8_t byte) {
 }
 
 void check_ext_trigger() {
-  int newPinState = digitalRead(extTriggerPin)
+  int newPinState = digitalRead(extTriggerPin);
   if (extTriggerPinState == newPinState) {
     debouncing = false;
     return;
@@ -47,10 +47,10 @@ void check_ext_trigger() {
 
   if (debouncing && (millis() - debounceReadTime) > debounceMs) {
     // Right now we only care risig edge conditions to start a scan
-    if (newPinState == HIGH) set_running_status(true);
+    Serial.write(START_SCAN_BYTE);
     
     debouncing = false;
-    extTriggerPinState = newPinState
+    extTriggerPinState = newPinState;
   } else if (!debouncing) {
     debouncing = true;
     debounceReadTime = millis();
