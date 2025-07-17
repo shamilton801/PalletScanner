@@ -14,6 +14,7 @@ namespace PalletScanner.Hardware.StartStop
         private const int SCAN_TIME_MS = 5000;
 
         private readonly SerialPort port;
+        private readonly object _lock = new();
         private Timer timer;
 
         private bool _disposed = false;
@@ -28,16 +29,20 @@ namespace PalletScanner.Hardware.StartStop
 
         private void Port_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            SerialPort spL = (SerialPort)sender;
-            byte[] buf = new byte[spL.BytesToRead];
-            Console.WriteLine(System.Text.Encoding.UTF8.GetString(buf));
-            
-            if (spL.BytesToRead > 1)
+            byte[] buf;
+            lock (_lock)
             {
-                //Console.WriteLine("More than 1 bytes received from arduino. This indicates an issue with the arduino logic");
-            }
+                SerialPort spL = (SerialPort)sender;
+                buf = new byte[spL.BytesToRead];
+                Console.WriteLine(System.Text.Encoding.UTF8.GetString(buf));
 
-            spL.Read(buf, 0, buf.Length);
+                if (spL.BytesToRead > 1)
+                {
+                    //Console.WriteLine("More than 1 bytes received from arduino. This indicates an issue with the arduino logic");
+                }
+
+                spL.Read(buf, 0, buf.Length);
+            }
             
             // We only care about the last byte received
             switch (buf.Last())
@@ -49,13 +54,21 @@ namespace PalletScanner.Hardware.StartStop
 
         public override void StartScanning()
         {
-            port.Write([START_BYTE], 0, 1);
+            lock (_lock)
+            {
+                if (_disposed) return;
+                port.Write([START_BYTE], 0, 1);
+            }
             timer = new Timer(timer_Elapsed, null, SCAN_TIME_MS, Timeout.Infinite);
         }
 
         public override void StopScanning()
         {
-            port.Write([STOP_BYTE], 0, 1);
+            lock (_lock)
+            {
+                if (_disposed) return;
+                port.Write([STOP_BYTE], 0, 1);
+            }
         }
 
         public void timer_Elapsed(object state)
@@ -65,9 +78,12 @@ namespace PalletScanner.Hardware.StartStop
 
         protected override void Dispose(bool disposing)
         {
-            if (_disposed) return;
-            port.Close();
-            _disposed = true;
+            lock (_lock)
+            {
+                if (_disposed) return;
+                port.Close();
+                _disposed = true;
+            }
         }
 
         ~ArduinoIf()
