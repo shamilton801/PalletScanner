@@ -12,8 +12,6 @@ namespace PalletScanner.UI.ViewModel
         private string _bottomPalletBarcode;
         private string _topPalletFailureMessage;
         private string _bottomPalletFailureMessage;
-        private bool _showBottomMessage;
-        private bool _showTopMessage; 
         private string _conveyorTextColor; 
         private string _conveyorListColor;
         #endregion
@@ -53,18 +51,6 @@ namespace PalletScanner.UI.ViewModel
         {
             get => _bottomPalletFailureMessage;
             set => SetProperty(ref _bottomPalletFailureMessage, value);
-        }
-
-        public bool ShowTopMessage
-        {
-            get => _showTopMessage;
-            set => SetProperty(ref _showTopMessage, value);
-        }
-
-        public bool ShowBottomMessage
-        {
-            get => _showBottomMessage;
-            set => SetProperty(ref _showBottomMessage, value);
         }
         #endregion
 
@@ -117,8 +103,6 @@ namespace PalletScanner.UI.ViewModel
             TopPalletFailureMessage = string.Empty;
             BottomPalletBarcode = string.Empty;
             BottomPalletBarcode = string.Empty;
-            ShowTopMessage = false;
-            ShowBottomMessage = false;
         }
 
         private void StartScan()
