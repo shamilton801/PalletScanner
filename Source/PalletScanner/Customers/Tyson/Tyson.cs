@@ -31,104 +31,51 @@ namespace PalletScanner.Customers.Tyson
 
     public class TysonValidator : AbstractValidator
     {
-        private class ValidationPerPallet(string itemNumber)
-        {
-            public class ValidationPerItem(string serialNumber)
-            {
-                public readonly List<BarcodeRead> Reads = [];
-
-                public bool AddBarcodeRead(TysonBarcode barcodeRead)
-                {
-                    Reads.Add(barcodeRead.Raw);
-                    return false;
-                }
-
-                public IEnumerable<Status> GetStatus()
-                {
-                    yield return new(StatusType.Info, $"Serial Number: {serialNumber}");
-                }
-            }
-
-            public readonly Dictionary<string, ValidationPerItem> ItemsBySerialNumber = [];
-
-            public bool AddBarcodeRead(TysonBarcode barcodeRead)
-            {
-                bool statusChanged = false;
-                bool hasCorrectNumber = ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes;
-                var sn = barcodeRead.SerialNumber;
-                if (!ItemsBySerialNumber.TryGetValue(sn, out var itemData))
-                {
-                    itemData = new(sn);
-                    ItemsBySerialNumber[sn] = itemData;
-                    statusChanged = true;
-                }
-                statusChanged |= hasCorrectNumber != (ItemsBySerialNumber.Count == ExpectedNumberOfBarcodes);
-                statusChanged |= itemData.AddBarcodeRead(barcodeRead);
-                return statusChanged;
-            }
-
-            public IEnumerable<Status> GetStatus()
-            {
-                if (!TysonCsvData.ItemDescriptions.TryGetValue(itemNumber, out var type)) type = itemNumber;
-                yield return new(StatusType.Info, $"Pallet of type: {type}");
-                var expectedCount = ExpectedNumberOfBarcodes;
-                var actualCount = ItemsBySerialNumber.Count;
-                if (expectedCount != actualCount)
-                {
-                    string msg;
-                    if (actualCount > expectedCount) msg = $"Too many barcodes ({actualCount} > {expectedCount})";
-                    else if (actualCount < expectedCount) msg = $"Not enough barcodes ({actualCount} < {expectedCount})";
-                    else msg = $"{itemNumber} was not found in the Tyson Validation CSV";
-                    yield return new(StatusType.Error, msg);
-                }
-                foreach (var kv in ItemsBySerialNumber)
-                    foreach (var status in kv.Value.GetStatus())
-                        yield return status;
-            }
-
-            private int? ExpectedNumberOfBarcodes
-            {
-                get
-                {
-                    if (TysonCsvData.ExpectedCounts.TryGetValue(itemNumber, out int result))
-                        return result;
-                    else
-                        return null;
-                }
-            }
-        }
-
+        private readonly Dictionary<string, Dictionary<string, Status>> _itemNumberTracking = [];
         public override IEnumerable<Status> Status
         {
             get
             {
-                if (PalletsByItemNumber.Count == 0 && FailedReads.Count == 0)
-                    yield return new(StatusType.Error, "Empty scan");
-                //foreach (var failedRead in FailedReads)
-                //    yield return new BarcodeReadStatus(StatusType.Error, failedRead, "Failed barcode read");
-                foreach (var kv in PalletsByItemNumber)
-                    foreach (var status in kv.Value.GetStatus())
-                        yield return status;
+                foreach (KeyValuePair<string, Dictionary<string, Status>> pair in _itemNumberTracking)
+                {
+                    int counted = pair.Value.Count;
+                    int expected = TysonCsvData.ExpectedCounts[pair.Key];
+                    string msg = $"{counted}/{expected} {TysonCsvData.ItemDescriptions[pair.Key]} ({pair.Key})";
+                    Status status = new(counted == expected ? StatusType.Info : StatusType.Error, msg);
+                    status.ChildStatus = _itemNumberTracking[pair.Key].Select(x => x.Value).ToList();
+                    yield return new(StatusType.Error, msg);
+                }
             }
         }
-
-        private readonly Dictionary<string, ValidationPerPallet> PalletsByItemNumber = [];
-        public readonly List<BarcodeRead> FailedReads = [];
 
         public override void AddBarcodeRead(BarcodeRead barcodeRead)
         {
             if (IsValidTysonBarcode(barcodeRead))
             {
-                bool statusChanged = PalletsByItemNumber.Count == 0 && FailedReads.Count == 0; // true on startup
+                bool statusChanged = false;
                 TysonBarcode tysonBarcodeRead = new(barcodeRead);
+
                 var itemNum = tysonBarcodeRead.ItemNumber;
-                if (!PalletsByItemNumber.TryGetValue(itemNum, out var palletData))
+                if (!_itemNumberTracking.TryGetValue(itemNum, out var serialTracking)) 
                 {
-                    palletData = new(itemNum);
-                    PalletsByItemNumber[itemNum] = palletData;
+                    serialTracking = [];
                     statusChanged = true;
                 }
-                statusChanged |= palletData.AddBarcodeRead(tysonBarcodeRead);
+                
+                var serialNum = tysonBarcodeRead.SerialNumber;
+                if (!serialTracking.TryGetValue(serialNum, out var status))
+                {
+                    status = new(StatusType.Info, $"{serialNum}");
+                    serialTracking[serialNum] = status;
+                    statusChanged = true;
+                }
+                status.AssociatedBarcodeReads = new List<BarcodeRead>();
+
+                if (serialTracking.Count == TysonCsvData.ExpectedCounts[itemNum])
+                {
+                    statusChanged = true;
+                }
+
                 if (statusChanged) NotfifyStatusUpdated();
             }
             else
