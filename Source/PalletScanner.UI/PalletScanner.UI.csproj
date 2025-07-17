@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Source\PalletScanner\PalletScanner.csproj" />
+    <ProjectReference Include="..\PalletScanner\PalletScanner.csproj" />
   </ItemGroup>
 
   <ItemGroup>
