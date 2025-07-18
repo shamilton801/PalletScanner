@@ -1,6 +1,4 @@
 using PalletScanner.Data;
-using PalletScanner.Hardware.Cameras;
-using PalletScanner.Hardware.StartStop;
 
 namespace PalletScanner.UI
 {
@@ -25,24 +23,37 @@ namespace PalletScanner.UI
             model.StatusUpdated += statuses => BeginInvoke(() => Model_StatusUpdated(statuses));
         }
 
+        private readonly Dictionary<IStatus, StatusBlock> statusBlocks = [];
+
         private void Model_StatusUpdated(IEnumerable<IStatus> statuses)
         {
-            ValidationStatusPanel.Controls.Clear();
+            var statusArray = statuses.ToArray();
+            /* Remove deleted blocks */ {
+                HashSet<IStatus> toRemove = [.. statusBlocks.Keys];
+                foreach (var status in statusArray) toRemove.Remove(status);
+                foreach (var status in toRemove)
+                {
+                    ValidationStatusPanel.Controls.Remove(statusBlocks[status]);
+                    statusBlocks.Remove(status);
+                }
+            }
+
             const int Margin = 3;
-            const int Height = 40;
             int y = Margin;
             foreach (IStatus status in statuses)
             {
-                Label ctrl = new()
+                if (statusBlocks.TryGetValue(status, out StatusBlock? block))
                 {
-                    Text = status.Message,
-                    Location = new(Margin, y),
-                    Size = new(ValidationStatusPanel.Width - 2 * Margin, Height),
-                    Anchor = AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Left,
-                };
-                ctrl.Font = new Font(ctrl.Font.FontFamily, 14);
-                y += Height + Margin;
-                ValidationStatusPanel.Controls.Add(ctrl);
+                    block.Reload();
+                }
+                else
+                {
+                    block = new(status) { Width = ValidationStatusPanel.Width - 2 * Margin };
+                    statusBlocks.Add(status, block);
+                    ValidationStatusPanel.Controls.Add(block);
+                }
+                block.Location = new(Margin, y);
+                y += Margin + block.Height;
             }
         }
         private void StartButton_Click(object sender, EventArgs e)
