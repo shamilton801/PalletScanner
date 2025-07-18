@@ -10,8 +10,10 @@ namespace PalletScanner.UI
         private bool _isOpen = false;
         private bool _canOpen = false;
         private readonly IStatus _status;
-        public StatusBlock(IStatus status)
+        private readonly Action ReloadFromTop;
+        public StatusBlock(IStatus status, Action reloadFromTop)
         {
+            ReloadFromTop = reloadFromTop;
             _status = status;
             InitializeComponent();
             Reload();
@@ -47,7 +49,7 @@ namespace PalletScanner.UI
                 return;
             }
             int y = StatusBlockBasicHeight + StatusBlockListMargin;
-            UpdateStatusBlockList(this, childStatusBlocks, ref y, children);
+            UpdateStatusBlockList(this, childStatusBlocks, ref y, ReloadFromTop, children);
             Height = y;
         }
 
@@ -57,6 +59,7 @@ namespace PalletScanner.UI
             Control control,
             Dictionary<IStatus, StatusBlock> statusBlocks,
             ref int y,
+            Action reloadFromTop,
             IStatus[] statuses)
         {
             /* Remove deleted blocks */
@@ -78,7 +81,7 @@ namespace PalletScanner.UI
                 }
                 else
                 {
-                    block = new(status) { Width = control.Width - 2 * StatusBlockListMargin };
+                    block = new(status, reloadFromTop) { Width = control.Width - 2 * StatusBlockListMargin };
                     statusBlocks.Add(status, block);
                     control.Controls.Add(block);
                 }
@@ -90,7 +93,7 @@ namespace PalletScanner.UI
         private void DropDownLabel_Click(object sender, EventArgs e)
         {
             _isOpen = _canOpen && !_isOpen;
-            Reload();
+            ReloadFromTop();
         }
     }
 }

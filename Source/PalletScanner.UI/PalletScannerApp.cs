@@ -1,4 +1,5 @@
 using PalletScanner.Data;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace PalletScanner.UI
 {
@@ -24,11 +25,17 @@ namespace PalletScanner.UI
         }
 
         private readonly Dictionary<IStatus, StatusBlock> statusBlocks = [];
+        private IStatus[] currentStatuses = [];
 
         private void Model_StatusUpdated(IEnumerable<IStatus> statuses)
         {
+            currentStatuses = statuses.ToArray();
+            Reload();
+        }
+        private void Reload()
+        {
             int y = StatusBlock.StatusBlockListMargin;
-            StatusBlock.UpdateStatusBlockList(ValidationStatusPanel, statusBlocks, ref y, statuses.ToArray());
+            StatusBlock.UpdateStatusBlockList(ValidationStatusPanel, statusBlocks, ref y, Reload, currentStatuses);
         }
         private void StartButton_Click(object sender, EventArgs e)
         {
