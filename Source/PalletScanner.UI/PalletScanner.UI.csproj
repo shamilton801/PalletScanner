@@ -4,24 +4,12 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\App.ico" />
-    <None Remove="Assets\PalletStack.svg" />
-    <None Remove="Assets\ScaledPalletStack.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PalletScanner\PalletScanner.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\App.ico" />
-    <Resource Include="Assets\PalletStack.svg" />
-    <Resource Include="Assets\ScaledPalletStack.png" />
   </ItemGroup>
 
   <Target Name="CopyDataFiles" AfterTargets="AfterBuild">
@@ -33,5 +21,4 @@
       DestinationFolder="$(OutDir)"
     />
   </Target>
-    
 </Project>

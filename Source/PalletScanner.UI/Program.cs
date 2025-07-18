@@ -1,44 +1,28 @@
-﻿using PalletScanner.Customers.Tyson;
+using PalletScanner.Customers.Tyson;
 using PalletScanner.Data;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Hardware.StartStop;
-using PalletScanner.UI.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-namespace PalletScanner.UI.View
+namespace PalletScanner.UI
 {
-    /// <summary>
-    /// Interaction logic for RotaryView.xaml
-    /// </summary>
-    public partial class RotaryView : Window
+    internal static class Program
     {
-        private const bool IsTest = false;
-
-        public RotaryView()
+        /// <summary>
+        ///  The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main(string[] args)
         {
-            InitializeComponent();
-            DataContext = new RotaryViewModel(IsTest ? CreateTestModel() : CreateRotaryModel());
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+            var model = args.Any(arg => arg == "--test-setup")
+                ? CreateTestModel()
+                : CreateRotaryModel();
+            Application.Run(new PalletScannerApp(model));
         }
-
-        private void Window_Close(object sender, RoutedEventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
-
+        
         private static RotaryModel CreateRotaryModel() => new(
             [
                 new DatamanNetworkCamera(IPAddress.Parse("10.191.0.103"), "7-1-DM3812-371BE6"),
