@@ -18,6 +18,7 @@ void setup() {
   pinMode(extTriggerPin, INPUT);
   extTriggerPinState = digitalRead(extTriggerPin); 
   light_and_camera_setup();
+  set_running_status(false);
 }
 
 void loop() {
