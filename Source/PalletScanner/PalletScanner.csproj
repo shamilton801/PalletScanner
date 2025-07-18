@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <Target Name="CopyTysonCsv" AfterTargets="AfterBuild">
-	  <Copy SourceFiles="Customers\Tyson\tyson_ex_data.csv" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="Customers\Tyson\tyson_ex_data.csv" DestinationFolder="$(SolutionDir)\Intermediate\.Data" />
   </Target>
 
 </Project>

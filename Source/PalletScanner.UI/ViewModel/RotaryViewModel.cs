@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using PalletScanner.Data;
+using System.ComponentModel;
 using System.Windows.Input;
 
 namespace PalletScanner.UI.ViewModel
@@ -71,15 +72,32 @@ namespace PalletScanner.UI.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public RotaryViewModel()
+        public RotaryViewModel(RotaryModel model)
         {
-            StartCommand = new RelayCommand(StartScan);
-            StopCommand = new RelayCommand(StopScan);
+            StartCommand = new RelayCommand(model.StartScan);
+            StopCommand = new RelayCommand(model.StopScan);
+            model.StatusUpdated += UpdateDisplay;
         }
 
-        private void UpdateDisplay()
+        private void UpdateDisplay(IEnumerable<IStatus> statuses)
         {
             ClearUI();
+
+            foreach (var status in statuses)
+            {
+                switch (status.Type)
+                {
+                    case StatusType.Info:
+                        ConveyorListColor = "#47CD89";
+                        ConveyorTextColor = "#344054";
+                        break;
+                    default:
+                        TopPalletFailureMessage = status.Message;
+                        ConveyorListColor = "#F97066";
+                        ConveyorTextColor = "#FFFFFF";
+                        break;
+                }
+            }
 
             //TopPalletBarcode = args.UID;
             //if (args.State == GateKeeperServer.Events.EventState.Error)
@@ -103,16 +121,6 @@ namespace PalletScanner.UI.ViewModel
             TopPalletFailureMessage = string.Empty;
             BottomPalletBarcode = string.Empty;
             BottomPalletBarcode = string.Empty;
-        }
-
-        private void StartScan()
-        {
-
-        }
-
-        private void StopScan()
-        {
-
         }
     }
 }

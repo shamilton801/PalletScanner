@@ -24,4 +24,14 @@
     <Resource Include="Assets\ScaledPalletStack.png" />
   </ItemGroup>
 
+  <Target Name="CopyDataFiles" AfterTargets="AfterBuild">
+    <ItemGroup>
+      <DataFiles Include="$(SolutionDir)\Intermediate\.Data\**"/>
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(DataFiles)"
+      DestinationFolder="$(OutDir)"
+    />
+  </Target>
+    
 </Project>
