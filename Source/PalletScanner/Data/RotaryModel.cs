@@ -34,36 +34,47 @@ namespace PalletScanner.Data
             startStop.StopTriggered += _ => StopScan();
         }
 
-        public void StartScan()
+        public void StartScan() => StartScanInner(null);
+        private CancellationTokenSource? StartScanInner(Action? onStop)
         {
-            if (_threadData != null) return;
+            if (_threadData != null) return null;
             var cts = new CancellationTokenSource();
             _threadData = new ThreadData()
             {
                 Cts = cts,
-                Thd = new Thread(() => ValidationThread(cts.Token))
+                Thd = new Thread(() => ValidationThread(cts.Token, onStop))
             };
             _threadData.Value.Thd.Start();
             startStop.StartScanning();
+            return cts;
         }
 
         public void StopScan()
         {
-            if (_threadData == null) return;
-            var data = _threadData.Value;
-            _threadData = null;
-            startStop.StopScanning();
-            data.Cts.Cancel();
-            data.Thd.Join();
+            var data = _threadData;
+            if (data == null) return;
+            data.Value.Cts.Cancel();
+            data.Value.Thd.Join();
         }
 
-        private void ValidationThread(CancellationToken token)
+        private static readonly TimeSpan ScanTime = TimeSpan.FromSeconds(5);
+        public void StartTimedScan(Action? onStop = null) => StartScanInner(onStop)?.CancelAfter(ScanTime);
+        private void ValidationThread(CancellationToken token, Action? onStop)
         {
-            var validator = customer.CreateValidationSession();
-            validator.StatusChanged += (sender, args) => _StatusUpdated?.Invoke(args);
-            _StatusUpdated?.Invoke(validator.Status);
-            ReadBarcodesToValidatorAsync(validator, token).WaitForCancel();
-            _StatusUpdated?.Invoke(validator.Status);
+            try
+            {
+                var validator = customer.CreateValidationSession();
+                validator.StatusChanged += (sender, args) => _StatusUpdated?.Invoke(args);
+                _StatusUpdated?.Invoke(validator.Status);
+                ReadBarcodesToValidatorAsync(validator, token).WaitForCancel();
+                _StatusUpdated?.Invoke(validator.Status);
+            }
+            finally
+            {
+                startStop.StopScanning();
+                _threadData = null;
+                onStop?.Invoke();
+            }
         }
 
         private async Task ReadBarcodesToValidatorAsync(IValidator validator, CancellationToken token)

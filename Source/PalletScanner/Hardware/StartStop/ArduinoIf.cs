@@ -11,11 +11,9 @@ namespace PalletScanner.Hardware.StartStop
         private const byte START_BYTE = 0xD0;
         private const byte STOP_BYTE = 0xD1;
         private const int BAUD = 9600;
-        private const int SCAN_TIME_MS = 5000;
 
         private readonly SerialPort port;
         private readonly object _lock = new();
-        private Timer timer;
 
         private bool _disposed = false;
 
@@ -59,7 +57,6 @@ namespace PalletScanner.Hardware.StartStop
                 if (_disposed) return;
                 port.Write([START_BYTE], 0, 1);
             }
-            timer = new Timer(timer_Elapsed, null, SCAN_TIME_MS, Timeout.Infinite);
         }
 
         public override void StopScanning()
