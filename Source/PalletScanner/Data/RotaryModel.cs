@@ -1,17 +1,9 @@
 ﻿using PalletScanner.Customers.Interface;
-using PalletScanner.Data;
 using PalletScanner.Hardware.Cameras;
 using PalletScanner.Hardware.StartStop;
 using PalletScanner.Utils;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 
-namespace PalletScanner.UI.ViewModel
+namespace PalletScanner.Data
 {
     public class RotaryModel
     {
