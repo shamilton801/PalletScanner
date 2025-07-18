@@ -15,19 +15,19 @@
 
     public class LeafStatus(StatusType type, string message = "") : IStatus
     {
-        public StatusType Type => type;
-        public string Message => message;
-        public List<BarcodeRead> AssociatedBarcodeReads { get; } = [];
+        public StatusType Type { get; set; } = type;
+        public string Message { get; set; } = message;
+        public List<BarcodeRead> AssociatedBarcodeReads { get; set; } = [];
         IEnumerable<BarcodeRead> IStatus.AssociatedBarcodeReads => AssociatedBarcodeReads;
         public IEnumerable<IStatus> ChildStatus => [];
     }
 
     public class ParentStatus(StatusType type, string message = "") : IStatus
     {
-        public StatusType Type => type;
-        public string Message => message;
+        public StatusType Type { get; set; } = type;
+        public string Message { get; set; } = message;
         public IEnumerable<BarcodeRead> AssociatedBarcodeReads => [];
-        public List<IStatus> ChildStatus { get; } = [];
+        public List<IStatus> ChildStatus { get; set; } = [];
         IEnumerable<IStatus> IStatus.ChildStatus => ChildStatus;
     }
 }

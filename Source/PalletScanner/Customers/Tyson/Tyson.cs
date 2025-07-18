@@ -31,23 +31,20 @@ namespace PalletScanner.Customers.Tyson
 
     public class TysonValidator : AbstractValidator
     {
-        // valid item number -> serial number -> status
-        private readonly Dictionary<string, Dictionary<string, LeafStatus>> _itemNumberTracking = [];
-        public override IEnumerable<IStatus> Status
+        private class ItemNumTrackingData(string ItemNum) : IStatus
         {
-            get
-            {
-                foreach (var pair in _itemNumberTracking)
-                {
-                    int counted = pair.Value.Count;
-                    int expected = TysonCsvData.ExpectedCounts[pair.Key];
-                    string msg = $"{counted}/{expected} {TysonCsvData.ItemDescriptions[pair.Key]} ({pair.Key})";
-                    ParentStatus status = new(counted == expected ? StatusType.Info : StatusType.Error, msg);
-                    status.ChildStatus.AddRange(_itemNumberTracking[pair.Key].Select(x => x.Value));
-                    yield return status;
-                }
-            }
+            public readonly Dictionary<string, LeafStatus> Data = [];
+
+            private int Counted => Data.Count;
+            private int Expected => TysonCsvData.ExpectedCounts[ItemNum];
+
+            public StatusType Type => Counted == Expected ? StatusType.Info : StatusType.Error;
+            public string Message => $"{Counted}/{Expected} {TysonCsvData.ItemDescriptions[ItemNum]} ({ItemNum})";
+            public IEnumerable<BarcodeRead> AssociatedBarcodeReads => [];
+            public IEnumerable<IStatus> ChildStatus => Data.Values;
         }
+        private readonly Dictionary<string, ItemNumTrackingData> _itemNumberTracking = [];
+        public override IEnumerable<IStatus> Status => _itemNumberTracking.Values;
 
         public override void AddBarcodeRead(BarcodeRead barcodeRead)
         {
@@ -59,16 +56,16 @@ namespace PalletScanner.Customers.Tyson
             var itemNum = tysonBarcodeRead.ItemNumber;
             if (!_itemNumberTracking.TryGetValue(itemNum, out var serialTracking)) 
             {
-                serialTracking = [];
+                serialTracking = new(itemNum);
                 _itemNumberTracking[itemNum] = serialTracking;
                 statusChanged = true;
             }
 
             var serialNum = tysonBarcodeRead.SerialNumber;
-            if (!serialTracking.TryGetValue(serialNum, out var status))
+            if (!serialTracking.Data.TryGetValue(serialNum, out var status))
             {
                 status = new LeafStatus(StatusType.Info, $"{serialNum}");
-                serialTracking[serialNum] = status;
+                serialTracking.Data[serialNum] = status;
                 statusChanged = true;
             }
             status.AssociatedBarcodeReads.Add(barcodeRead);
