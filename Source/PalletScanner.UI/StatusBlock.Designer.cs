@@ -31,8 +31,6 @@
             MessageLabel = new Label();
             DropDownLabel = new Label();
             TypeLabel = new Label();
-            SubtypeLabel1 = new Label();
-            SubtypeLabel2 = new Label();
             SuspendLayout();
             // 
             // MessageLabel
@@ -41,7 +39,7 @@
             MessageLabel.Font = new Font("Segoe UI", 14.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             MessageLabel.Location = new Point(80, 0);
             MessageLabel.Name = "MessageLabel";
-            MessageLabel.Size = new Size(340, 40);
+            MessageLabel.Size = new Size(374, 40);
             MessageLabel.TabIndex = 0;
             MessageLabel.TextAlign = ContentAlignment.MiddleLeft;
             MessageLabel.DoubleClick += DropDownLabel_Click;
@@ -62,28 +60,8 @@
             TypeLabel.TabIndex = 2;
             TypeLabel.DoubleClick += DropDownLabel_Click;
             // 
-            // SubtypeLabel1
-            // 
-            SubtypeLabel1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SubtypeLabel1.Location = new Point(460, 0);
-            SubtypeLabel1.Name = "SubtypeLabel1";
-            SubtypeLabel1.Size = new Size(40, 40);
-            SubtypeLabel1.TabIndex = 3;
-            SubtypeLabel1.DoubleClick += DropDownLabel_Click;
-            // 
-            // SubtypeLabel2
-            // 
-            SubtypeLabel2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            SubtypeLabel2.Location = new Point(420, 0);
-            SubtypeLabel2.Name = "SubtypeLabel2";
-            SubtypeLabel2.Size = new Size(40, 40);
-            SubtypeLabel2.TabIndex = 4;
-            SubtypeLabel2.DoubleClick += DropDownLabel_Click;
-            // 
             // StatusBlock
             // 
-            Controls.Add(SubtypeLabel2);
-            Controls.Add(SubtypeLabel1);
             Controls.Add(TypeLabel);
             Controls.Add(DropDownLabel);
             Controls.Add(MessageLabel);
@@ -98,7 +76,5 @@
         private Label MessageLabel;
         private Label DropDownLabel;
         private Label TypeLabel;
-        private Label SubtypeLabel1;
-        private Label SubtypeLabel2;
     }
 }

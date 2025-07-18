@@ -1,7 +1,4 @@
 ﻿using PalletScanner.Data;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace PalletScanner.UI
 {
@@ -43,6 +40,7 @@ namespace PalletScanner.UI
                 ? Properties.Resources.DropdownOpenIcon
                 : Properties.Resources.DropdownClosedIcon
                 : null;
+            Invalidate();
             if (!_canOpen || !_isOpen)
             {
                 Height = StatusBlockBasicHeight;
@@ -51,6 +49,33 @@ namespace PalletScanner.UI
             int y = StatusBlockBasicHeight + StatusBlockListMargin;
             UpdateStatusBlockList(this, childStatusBlocks, ref y, ReloadFromTop, children);
             Height = y;
+        }
+        private HashSet<StatusType> GetChildTypes()
+        {
+            HashSet<StatusType> childTypes = [.. _status.ChildStatus.Select(s => s.Type)];
+            childTypes.Remove(_status.Type);
+            return childTypes;
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            const int ImgSize = StatusBlockBasicHeight / 2;
+            const int Margin = 3;
+            int x = Width;
+            foreach (var childType in GetChildTypes())
+            {
+                x -= ImgSize + Margin;
+                Bitmap img;
+                switch (childType)
+                {
+                    case StatusType.Info: img = Properties.Resources.InfoIcon; break;
+                    case StatusType.Warning: img = Properties.Resources.WarningIcon; break;
+                    case StatusType.Error: img = Properties.Resources.ErrorIcon; break;
+                    default: continue;
+                }
+                e.Graphics.DrawImage(img, x, (StatusBlockBasicHeight - ImgSize) / 2, ImgSize, ImgSize);
+            }
         }
 
         public const int StatusBlockBasicHeight = 40;
