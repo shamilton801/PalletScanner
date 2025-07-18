@@ -22,6 +22,8 @@ namespace PalletScanner.UI
             _model = model;
             InitializeComponent();
             model.StatusUpdated += statuses => BeginInvoke(() => Model_StatusUpdated(statuses));
+            model.StartTriggered += _ => TimedScanButton_Click(null, null);
+            model.StopTriggered += _ => StopButton_Click(null, null);
         }
 
         private readonly Dictionary<IStatus, StatusBlock> statusBlocks = [];
@@ -37,17 +39,17 @@ namespace PalletScanner.UI
             int y = StatusBlock.StatusBlockListMargin;
             StatusBlock.UpdateStatusBlockList(ValidationStatusPanel, statusBlocks, ref y, Reload, currentStatuses);
         }
-        private void StartButton_Click(object sender, EventArgs e)
+        private void StartButton_Click(object? sender, EventArgs? e)
         {
             _model.StartScan();
             ButtonModeRunning = true;
         }
-        private void StopButton_Click(object sender, EventArgs e)
+        private void StopButton_Click(object? sender, EventArgs? e)
         {
             _model.StopScan();
             ButtonModeRunning = false;
         }
-        private void TimedScanButton_Click(object sender, EventArgs e)
+        private void TimedScanButton_Click(object? sender, EventArgs? e)
         {
             _model.StartTimedScan(() =>
             {

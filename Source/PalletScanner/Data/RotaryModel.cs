@@ -34,6 +34,16 @@ namespace PalletScanner.Data
             startStop.StopTriggered += _ => StopScan();
         }
 
+        public event IStartStop.Trigger StartTriggered
+        {
+            add => startStop.StartTriggered += value;
+            remove => startStop.StartTriggered -= value;
+        }
+        public event IStartStop.Trigger StopTriggered
+        {
+            add => startStop.StopTriggered += value;
+            remove => startStop.StopTriggered -= value;
+        }
         public void StartScan() => StartScanInner(null);
         private CancellationTokenSource? StartScanInner(Action? onStop)
         {
