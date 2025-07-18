@@ -1,3 +1,5 @@
-.vs/*
-Intermediate/*
-Output/*
+/.vs/*
+/Intermediate/*
+/Output/*
+*.user
+launchSettings.json
