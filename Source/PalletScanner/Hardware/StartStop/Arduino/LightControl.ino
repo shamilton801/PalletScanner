@@ -13,7 +13,7 @@ void light_and_camera_setup() {
   digitalWrite(triggerPin2, LOW);
 
   // Timer1 - 72 Hz PWM on Pin 9
-  TCCR1A = (1 << COM1A1) | (1 << WGM11);
+  TCCR1A = (1 << WGM11);
   TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS11) | (1 << CS10);
 
   ICR1 = 3471;  // 72 Hz
@@ -32,6 +32,11 @@ void set_running_status(bool enable) {
   noInterrupts();
   digitalWrite(triggerPin1, LOW);
   digitalWrite(triggerPin2, LOW);
+  if (enable) {
+     TCCR1A |= 1 << COM1A1; // disconnect light pwm from output
+  } else {
+    TCCR1A &= ~(1 << COM1A1); // connect light pwm to output
+  }
   running = enable;
   interrupts();
 }
