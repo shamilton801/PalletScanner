@@ -27,34 +27,8 @@ namespace PalletScanner.UI
 
         private void Model_StatusUpdated(IEnumerable<IStatus> statuses)
         {
-            var statusArray = statuses.ToArray();
-            /* Remove deleted blocks */ {
-                HashSet<IStatus> toRemove = [.. statusBlocks.Keys];
-                foreach (var status in statusArray) toRemove.Remove(status);
-                foreach (var status in toRemove)
-                {
-                    ValidationStatusPanel.Controls.Remove(statusBlocks[status]);
-                    statusBlocks.Remove(status);
-                }
-            }
-
-            const int Margin = 3;
-            int y = Margin;
-            foreach (IStatus status in statuses)
-            {
-                if (statusBlocks.TryGetValue(status, out StatusBlock? block))
-                {
-                    block.Reload();
-                }
-                else
-                {
-                    block = new(status) { Width = ValidationStatusPanel.Width - 2 * Margin };
-                    statusBlocks.Add(status, block);
-                    ValidationStatusPanel.Controls.Add(block);
-                }
-                block.Location = new(Margin, y);
-                y += Margin + block.Height;
-            }
+            int y = StatusBlock.StatusBlockListMargin;
+            StatusBlock.UpdateStatusBlockList(ValidationStatusPanel, statusBlocks, ref y, statuses.ToArray());
         }
         private void StartButton_Click(object sender, EventArgs e)
         {

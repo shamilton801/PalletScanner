@@ -1,4 +1,7 @@
 ﻿using PalletScanner.Data;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace PalletScanner.UI
 {
@@ -14,6 +17,7 @@ namespace PalletScanner.UI
             Reload();
         }
 
+        private readonly Dictionary<IStatus, StatusBlock> childStatusBlocks = [];
         public void Reload()
         {
             var children = _status.ChildStatus.ToArray();
@@ -37,6 +41,50 @@ namespace PalletScanner.UI
                 ? Properties.Resources.DropdownOpenIcon
                 : Properties.Resources.DropdownClosedIcon
                 : null;
+            if (!_canOpen || !_isOpen)
+            {
+                Height = StatusBlockBasicHeight;
+                return;
+            }
+            int y = StatusBlockBasicHeight + StatusBlockListMargin;
+            UpdateStatusBlockList(this, childStatusBlocks, ref y, children);
+            Height = y;
+        }
+
+        public const int StatusBlockBasicHeight = 40;
+        public const int StatusBlockListMargin = 3;
+        public static void UpdateStatusBlockList(
+            Control control,
+            Dictionary<IStatus, StatusBlock> statusBlocks,
+            ref int y,
+            IStatus[] statuses)
+        {
+            /* Remove deleted blocks */
+            {
+                HashSet<IStatus> toRemove = [.. statusBlocks.Keys];
+                foreach (var status in statuses) toRemove.Remove(status);
+                foreach (var status in toRemove)
+                {
+                    control.Controls.Remove(statusBlocks[status]);
+                    statusBlocks.Remove(status);
+                }
+            }
+
+            foreach (IStatus status in statuses)
+            {
+                if (statusBlocks.TryGetValue(status, out StatusBlock? block))
+                {
+                    block.Reload();
+                }
+                else
+                {
+                    block = new(status) { Width = control.Width - 2 * StatusBlockListMargin };
+                    statusBlocks.Add(status, block);
+                    control.Controls.Add(block);
+                }
+                block.Location = new(StatusBlockListMargin, y);
+                y += StatusBlockListMargin + block.Height;
+            }
         }
 
         private void DropDownLabel_Click(object sender, EventArgs e)
