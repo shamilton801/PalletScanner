@@ -22,8 +22,8 @@ namespace PalletScanner.UI
             _model = model;
             InitializeComponent();
             model.StatusUpdated += statuses => BeginInvoke(() => Model_StatusUpdated(statuses));
-            model.StartTriggered += _ => TimedScanButton_Click(null, null);
-            model.StopTriggered += _ => StopButton_Click(null, null);
+            model.StartTriggered += _ => BeginInvoke(() => StartButton_Click(null, null));
+            model.StopTriggered += _ => BeginInvoke(() => StopButton_Click(null, null));
         }
 
         private readonly Dictionary<IStatus, StatusBlock> statusBlocks = [];
